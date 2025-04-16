@@ -8,7 +8,8 @@ export interface AuthContextType {
     password: string;
     firstName: string;
     lastName: string;
-  }) => Promise<void>;
+  }) => Promise<{ success: boolean; error?: string }>;
+  verifyCode: (params: { code: string }) => Promise<{ success: boolean; error?: string }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (params: { email: string }) => Promise<void>;

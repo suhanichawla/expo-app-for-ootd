@@ -30,6 +30,7 @@ export default function SignUpScreen() {
   const colorScheme = useColorScheme();
 
   const handleSignUp = async () => {
+    console.log('Sign up button pressed');
     // Validate inputs
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       setError('All fields are required');
@@ -49,10 +50,20 @@ export default function SignUpScreen() {
     try {
       setIsLoading(true);
       setError('');
-      await signUp({ email, password, firstName, lastName });
-      router.replace('/(tabs)');
+      
+      const result = await signUp({ email, password, firstName, lastName });
+      
+      if (result.success) {
+        // Redirect to verification code screen
+        router.push({
+          pathname: '/(auth)/verify-code',
+          params: { email }
+        });
+      } else {
+        setError(result.error || 'Sign up failed. Please try again.');
+      }
     } catch (err) {
-      setError('Sign up failed. Please try again.');
+      setError('An unexpected error occurred. Please try again.');
       console.error('Sign up error:', err);
     } finally {
       setIsLoading(false);

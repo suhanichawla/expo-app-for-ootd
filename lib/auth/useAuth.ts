@@ -10,6 +10,7 @@ export const useAuth = () => {
     // From auth context
     signIn: authContext.signIn,
     signUp: authContext.signUp,
+    verifyCode: authContext.verifyCode,
     signInWithGoogle: authContext.signInWithGoogle,
     signOut: authContext.signOut,
     forgotPassword: authContext.forgotPassword,
