@@ -1,50 +1,95 @@
-# Welcome to your Expo app 👋
+# Travel Vault - Authentication System
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This project implements a flexible authentication system using Clerk for React Native Expo. The authentication system is designed to be easily swappable with other providers in the future.
 
-## Get started
+## Features
+- Email/password authentication
+- Google Sign-In
+- Forgot password flow
+- Protected routes
+- State management with Zustand
+- Theming with customizable brand colors
 
-1. Install dependencies
+## Project Structure
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+app/
+├── (auth)/                  # Authentication screens
+│   ├── _layout.tsx          # Layout for auth screens
+│   ├── sign-in.tsx          # Sign in screen
+│   ├── sign-up.tsx          # Sign up screen (collects first and last name)
+│   └── forgot-password.tsx  # Forgot password screen
+├── (protected)/             # Protected routes
+│   ├── _layout.tsx          # Layout with auth protection
+│   └── home.tsx             # Protected home screen
+├── _layout.tsx              # Root layout with AuthProvider
+└── index.tsx                # Entry point with auth redirection
+constants/
+├── Colors.ts                # Theme colors
+├── BrandColors.ts           # Brand color (purple) - easily changeable
+lib/
+├── auth/                    # Auth implementation
+│   ├── AuthProvider.tsx     # Generic auth provider (currently uses Clerk)
+│   ├── AuthContext.tsx      # Auth context definition
+│   ├── withAuth.tsx         # HOC for protected components
+│   └── useAuth.ts           # Custom hook for auth
+store/
+└── authStore.ts             # Zustand store for auth state
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Setup
 
-## Learn more
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Create a `.env` file in the root directory with your Clerk publishable key:
+   ```
+   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
+   ```
+4. Start the development server:
+   ```
+   npm start
+   ```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Authentication Flow
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. When the app starts, it checks if the user is authenticated
+2. If authenticated, redirects to the protected home screen
+3. If not authenticated, redirects to the sign-in screen
+4. Users can sign in with email/password or Google
+5. New users can create an account on the sign-up screen
+6. Users can reset their password on the forgot password screen
 
-## Join the community
+## Customization
 
-Join our community of developers creating universal apps.
+### Changing the Brand Color
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+To change the brand color, simply update the `primary` color in `constants/BrandColors.ts`:
+
+```typescript
+export const BrandColors = {
+  primary: '#your_color_here', // Change this to your desired color
+};
+```
+
+### Switching Auth Providers
+
+The authentication system is designed to be easily swappable. To switch to a different auth provider:
+
+1. Create a new implementation in `lib/auth/AuthProvider.tsx`
+2. Update the provider while keeping the same interface
+
+## State Management
+
+The app uses Zustand for state management. The auth store is defined in `store/authStore.ts` and provides:
+
+- Authentication status
+- User information
+- Loading state
+- Methods for updating the state
+
+## Protected Routes
+
+Routes in the `(protected)` directory are only accessible to authenticated users. The protection is implemented in the `_layout.tsx` file, which redirects unauthenticated users to the sign-in screen.
