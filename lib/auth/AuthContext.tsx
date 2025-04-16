@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import { User } from '@/store/authStore';
 
 export interface AuthContextType {
-  signIn: (params: { email: string; password: string }) => Promise<void>;
+  signIn: (params: { email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
   signUp: (params: {
     email: string;
     password: string;

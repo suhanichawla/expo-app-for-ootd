@@ -75,7 +75,7 @@ export default function SignUpScreen() {
       setIsLoading(true);
       setError('');
       await signInWithGoogle();
-      router.replace('/(tabs)');
+      router.replace('/(tabs)' as any);
     } catch (err) {
       setError('Google sign in failed');
       console.error('Google sign in error:', err);

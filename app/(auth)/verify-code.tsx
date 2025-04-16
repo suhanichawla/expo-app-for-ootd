@@ -31,7 +31,7 @@ export default function VerifyCodeScreen() {
     if (!email) {
       // If no email is provided, redirect back to sign up
       Alert.alert('Error', 'No email provided for verification');
-      router.replace('/(auth)/sign-up');
+      router.replace('/(auth)/sign-up' as any);
     }
   }, [email, router]);
 
@@ -51,7 +51,7 @@ export default function VerifyCodeScreen() {
         setSuccess(true);
         // Wait a moment to show success message before redirecting
         setTimeout(() => {
-          router.replace('/(tabs)');
+          router.replace('/(protected)' as any);
         }, 1500);
       } else {
         setError(result.error || 'Verification failed. Please try again.');

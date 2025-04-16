@@ -58,14 +58,40 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const authContextValue: AuthContextType = {
     signIn: async ({ email, password }) => {
       try {
-        // Using Clerk's signIn method
-        // Note: This is a simplified implementation
-        // In a real app, you would handle the complete sign-in flow
-        console.log('Sign in with:', email);
-        // Implementation will depend on Clerk's current API
-      } catch (error) {
-        console.error('Sign in error:', error);
-        throw error;
+        if (!signIn) {
+          throw new Error('Sign in service is not available');
+        }
+        const signInAttempt = await signIn.create({
+          identifier: email,
+          password,
+        });
+  
+        // If sign-in process is complete, set the created session as active
+        // and redirect the user
+        if (signInAttempt.status === 'complete') {
+          return { 
+            success: true
+          }
+        } else {
+          // If the status isn't complete, check why. User might need to
+          // complete further steps.
+          console.log('Sign in attempt:', signInAttempt);
+          console.error(JSON.stringify(signInAttempt, null, 2))
+          return { 
+            success: false, 
+            error:  'Sign in. Please try again.' 
+          }
+        }
+      } catch (err) {
+        console.log('Sign in error:');
+        // See https://clerk.com/docs/custom-flows/error-handling
+        // for more info on error handling
+        console.error(JSON.stringify(err, null, 2))
+        const errorMessage = (err as any)?.message || 'Sign in failed. Please try again.';
+        return { 
+          success: false, 
+          error: errorMessage  
+        };
       }
     },
     signUp: async ({ email, password, firstName, lastName }) => {
