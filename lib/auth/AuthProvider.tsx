@@ -3,6 +3,9 @@ import { ClerkProvider, useAuth, useUser, useSignUp, useSignIn } from '@clerk/cl
 import * as SecureStore from 'expo-secure-store';
 import { AuthContext, AuthContextType } from './AuthContext';
 import { useAuthStore, User } from '@/store/authStore';
+import { useSSO } from '@clerk/clerk-expo'
+import * as AuthSession from 'expo-auth-session'
+
 
 
 // Secure storage for Clerk tokens
@@ -23,9 +26,11 @@ const tokenCache = {
   },
 };
 
+
 // ClerkAuthProvider is the specific implementation using Clerk
 const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { isLoaded, isSignedIn, signOut } = useAuth();
+  const { startSSOFlow } = useSSO()
   const { user: clerkUser } = useUser();
   const { signUp, setActive } = useSignUp();
   const { signIn } = useSignIn();
@@ -190,6 +195,18 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       // This will be implemented with OAuth
       try {
         // Implementation will depend on Clerk's OAuth setup
+        const { createdSessionId, setActive, signIn, signUp } = await startSSOFlow({
+          strategy: 'oauth_google',
+          redirectUrl: AuthSession.makeRedirectUri(),
+        })
+  
+        // If sign in was successful, set the active session
+        if (createdSessionId) {
+          console.log('Sign in successful:', createdSessionId);
+          setActive!({ session: createdSessionId })
+        } else {
+          console.log('Sign in attempt:', signIn)
+        }
         console.log('Sign in with Google');
       } catch (error) {
         console.error('Google sign in error:', error);
