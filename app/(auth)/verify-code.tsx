@@ -51,7 +51,7 @@ export default function VerifyCodeScreen() {
         setSuccess(true);
         // Wait a moment to show success message before redirecting
         setTimeout(() => {
-          router.replace('/(protected)' as any);
+          router.replace('/(protected)/home' as any);
         }, 1500);
       } else {
         setError(result.error || 'Verification failed. Please try again.');

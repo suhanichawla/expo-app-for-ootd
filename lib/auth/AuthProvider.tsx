@@ -171,7 +171,6 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             email: signUp.emailAddress || '',
           };
           
-          useAuthStore.getState().setUser(user);
           useAuthStore.getState().setAuthenticated(true);
         }
         
@@ -203,14 +202,17 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         // If sign in was successful, set the active session
         if (createdSessionId) {
           console.log('Sign in successful:', createdSessionId);
-          setActive!({ session: createdSessionId })
+          await setActive!({ session: createdSessionId })
+          console.log("sign in with google store", signUp)
+          useAuthStore.getState().setAuthenticated(true);
+          return { success: true };
         } else {
           console.log('Sign in attempt:', signIn)
-        }
-        console.log('Sign in with Google');
+          return { success: false, error: 'Sign in failed. Please try again.' };
+        };
       } catch (error) {
         console.error('Google sign in error:', error);
-        throw error;
+        return { success: false, error: 'Google sign in failed. Please try again.' };
       }
     },
     signOut: async () => {

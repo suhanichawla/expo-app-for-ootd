@@ -53,7 +53,7 @@ export default function SignInScreen() {
       let isSignedIn = await signIn({ email, password });
       if (isSignedIn.success) {
         console.log('Sign in successful:', isSignedIn);
-        router.replace('/(tabs)');
+        router.replace('/(protected)/home' as any);
       }else{
         setError(isSignedIn.error || 'Invalid email or password');
         return;
@@ -70,8 +70,14 @@ export default function SignInScreen() {
     try {
       setIsLoading(true);
       setError('');
-      await signInWithGoogle();
-      router.replace('/(protected)' as any);
+      let isSignedIn = await signInWithGoogle();
+      if (isSignedIn.success) {
+        console.log('Sign in successful:', isSignedIn);
+        router.replace('/(protected)/home' as any);
+      }else{
+        setError(isSignedIn.error || 'Invalid email or password');
+        return;
+      }
     } catch (err) {
       setError('Google sign in failed');
       console.error('Google sign in error:', err);
