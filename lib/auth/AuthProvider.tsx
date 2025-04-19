@@ -177,6 +177,12 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           firstName,
           lastName,
         });
+        const newDbUser = await userApi.createUser({
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          clerkUserId: signUp.createdUserId || ''
+        });
   
         // Send user an email with verification code
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
@@ -213,7 +219,6 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         const verification = await signUp.attemptEmailAddressVerification({
           code,
         });
-        
         if (verification.status !== 'complete') {
           return { 
             success: false, 
@@ -226,7 +231,8 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setPendingVerification(false);
         
         // Update the auth store
-        if (verification.createdUserId) {
+        if (verification.createdUserId && signUp.emailAddress) {
+          await userApi.verifyUser(signUp.emailAddress)
           const user: User = {
             id: verification.createdUserId,
             firstName: signUp.firstName || '',
@@ -236,7 +242,7 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             imageUrl: '',
             emailVerified: false
           };
-          
+          useAuthStore.getState().setUser(user);
           useAuthStore.getState().setAuthenticated(true);
         }
         
