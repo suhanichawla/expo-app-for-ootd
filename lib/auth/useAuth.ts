@@ -19,6 +19,8 @@ export const useAuth = () => {
     signInWithGoogle: authContext.signInWithGoogle,
     signOut: authContext.signOut,
     forgotPassword: authContext.forgotPassword,
+    verifyResetCode: authContext.verifyResetCode,
+    resetPasswordWithCode: authContext.resetPasswordWithCode,
     isLoaded: authContext.isLoaded,
     
     // From auth store

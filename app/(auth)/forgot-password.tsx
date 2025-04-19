@@ -18,14 +18,15 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const { forgotPassword } = useAuth();
+  const [step, setStep] = useState('email'); // email -> code -> success
+  const { forgotPassword, verifyResetCode } = useAuth();
   const router = useRouter();
   const colorScheme = useColorScheme();
 
-  const handleResetPassword = async () => {
+  const handleSendResetCode = async () => {
     if (!email) {
       setError('Email is required');
       return;
@@ -35,14 +36,132 @@ export default function ForgotPasswordScreen() {
       setIsLoading(true);
       setError('');
       await forgotPassword({ email });
-      setSuccess(true);
+      setStep('code');
     } catch (err) {
-      setError('Failed to send reset email. Please try again.');
+      setError('Failed to send reset code. Please try again.');
       console.error('Forgot password error:', err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleVerifyCode = async () => {
+    if (!code) {
+      setError('Verification code is required');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError('');
+      const result = await verifyResetCode({ email, code });
+      
+      if (result.success) {
+        router.push({
+          pathname: '/(auth)/reset-password' as any,
+          params: { email }
+        });
+      } else {
+        setError(result.error || 'Invalid code. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to verify code. Please try again.');
+      console.error('Code verification error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderEmailStep = () => (
+    <View style={styles.form}>
+      <ThemedText style={styles.instructions}>
+        Enter your email address and we'll send you a code to reset your password.
+      </ThemedText>
+
+      <TextInput
+        style={[
+          styles.input,
+          { color: Colors[colorScheme ?? 'light'].text },
+          { borderColor: Colors[colorScheme ?? 'light'].icon },
+        ]}
+        placeholder="Email"
+        placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+
+      {error ? <ThemedText style={styles.errorText}>{error}</ThemedText> : null}
+
+      <TouchableOpacity
+        style={[
+          styles.button,
+          { backgroundColor: Colors[colorScheme ?? 'light'].primary },
+        ]}
+        onPress={handleSendResetCode}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <ThemedText style={styles.buttonText}>Send Reset Code</ThemedText>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push('/(auth)/sign-in' as any)}
+      >
+        <ThemedText type="primary">Back to Sign In</ThemedText>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderCodeStep = () => (
+    <View style={styles.form}>
+      <ThemedText style={styles.instructions}>
+        Enter the verification code sent to your email address.
+      </ThemedText>
+
+      <TextInput
+        style={[
+          styles.input,
+          { color: Colors[colorScheme ?? 'light'].text },
+          { borderColor: Colors[colorScheme ?? 'light'].icon },
+        ]}
+        placeholder="Verification Code"
+        placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
+        value={code}
+        onChangeText={setCode}
+        keyboardType="number-pad"
+      />
+
+      {error ? <ThemedText style={styles.errorText}>{error}</ThemedText> : null}
+
+      <TouchableOpacity
+        style={[
+          styles.button,
+          { backgroundColor: Colors[colorScheme ?? 'light'].primary },
+        ]}
+        onPress={handleVerifyCode}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <ThemedText style={styles.buttonText}>Verify Code</ThemedText>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => setStep('email')}
+      >
+        <ThemedText type="primary">Back to Email</ThemedText>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -64,68 +183,8 @@ export default function ForgotPasswordScreen() {
           Reset Password
         </ThemedText>
 
-        {success ? (
-          <View style={styles.successContainer}>
-            <ThemedText style={styles.successText}>
-              Password reset email sent! Check your inbox for instructions.
-            </ThemedText>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { backgroundColor: Colors[colorScheme ?? 'light'].primary },
-              ]}
-              onPress={() => router.push('/(auth)/sign-in' as any)}
-            >
-              <ThemedText style={styles.buttonText}>Back to Sign In</ThemedText>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <ThemedText style={styles.instructions}>
-              Enter your email address and we'll send you instructions to reset your password.
-            </ThemedText>
-
-            <TextInput
-              style={[
-                styles.input,
-                { color: Colors[colorScheme ?? 'light'].text },
-                { borderColor: Colors[colorScheme ?? 'light'].icon },
-              ]}
-              placeholder="Email"
-              placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-
-            {error ? (
-              <ThemedText style={styles.errorText}>{error}</ThemedText>
-            ) : null}
-
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { backgroundColor: Colors[colorScheme ?? 'light'].primary },
-              ]}
-              onPress={handleResetPassword}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <ThemedText style={styles.buttonText}>Send Reset Link</ThemedText>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.push('/(auth)/sign-in' as any)}
-            >
-              <ThemedText type="primary">Back to Sign In</ThemedText>
-            </TouchableOpacity>
-          </View>
-        )}
+        {step === 'email' && renderEmailStep()}
+        {step === 'code' && renderCodeStep()}
       </ThemedView>
     </KeyboardAvoidingView>
   );

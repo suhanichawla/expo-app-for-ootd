@@ -13,6 +13,8 @@ export interface AuthContextType {
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   forgotPassword: (params: { email: string }) => Promise<void>;
+  verifyResetCode: (params: { email: string; code: string }) => Promise<{ success: boolean; error?: string }>;
+  resetPasswordWithCode: (params: { password: string }) => Promise<{ success: boolean; error?: string }>;
   isLoaded: boolean;
   isSignedIn: boolean;
   user: User | null;

@@ -318,6 +318,61 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         throw error;
       }
     },
+    verifyResetCode: async ({ email, code }) => {
+      try {
+        if (!signIn) {
+          throw new Error('Sign in service is not available');
+        }
+        
+        const attemptResult = await signIn.attemptFirstFactor({
+          strategy: 'reset_password_email_code',
+          code,
+        });
+        
+        if (attemptResult.status === 'needs_new_password') {
+          return { success: true };
+        } else {
+          return { 
+            success: false, 
+            error: 'Verification failed. Please try again.' 
+          };
+        }
+      } catch (error) {
+        console.error('Verify reset code error:', error);
+        const errorMessage = (error as any)?.message || 'Verification failed. Please try again.';
+        return { 
+          success: false, 
+          error: errorMessage 
+        };
+      }
+    },
+    resetPasswordWithCode: async ({ password }) => {
+      try {
+        if (!signIn) {
+          throw new Error('Sign in service is not available');
+        }
+        
+        const resetResult = await signIn.resetPassword({
+          password
+        });
+        
+        if (resetResult.status === 'complete') {
+          return { success: true };
+        } else {
+          return { 
+            success: false, 
+            error: 'Password reset failed. Please try again.' 
+          };
+        }
+      } catch (error) {
+        console.error('Reset password error:', error);
+        const errorMessage = (error as any)?.message || 'Password reset failed. Please try again.';
+        return { 
+          success: false, 
+          error: errorMessage 
+        };
+      }
+    },
     isLoaded,
     isSignedIn: isSignedIn || false,
     user: user, // Use the subscribed value from the store
