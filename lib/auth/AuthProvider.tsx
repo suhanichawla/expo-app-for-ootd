@@ -116,7 +116,8 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   
         // If sign-in process is complete, set the created session as active
         // and redirect the user
-        if (signInAttempt.status === 'complete') {
+        if (signInAttempt.status === 'complete' && signInAttempt.createdSessionId) {
+          await setActive!({ session: signInAttempt.createdSessionId });
           const dbUser = await userApi.getUserByEmail(email);
           if (dbUser) {
             const user: User = {
