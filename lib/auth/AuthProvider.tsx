@@ -357,6 +357,21 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         });
         
         if (resetResult.status === 'complete') {
+          // Sign out the user after password reset instead of setting the session
+          // This way they need to sign in manually with their new credentials
+          try {
+            // If a session was created by the reset operation, we need to sign out
+            if (resetResult.createdSessionId) {
+              console.log('Signing out after password reset');
+              await signOut();
+              // Also reset the auth store
+              useAuthStore.getState().signOut();
+            }
+          } catch (signOutError) {
+            console.error('Error signing out after password reset:', signOutError);
+            // Continue with success even if sign out fails, as the password was reset
+          }
+          
           return { success: true };
         } else {
           return { 

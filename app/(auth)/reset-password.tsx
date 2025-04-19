@@ -87,7 +87,7 @@ export default function ResetPasswordScreen() {
         {success ? (
           <View style={styles.successContainer}>
             <ThemedText style={styles.successText}>
-              Your password has been successfully reset!
+              Your password has been successfully reset! Please sign in with your new password.
             </ThemedText>
             <TouchableOpacity
               style={[
