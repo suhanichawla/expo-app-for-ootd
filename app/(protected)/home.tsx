@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/lib/auth/useAuth';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
@@ -19,6 +20,10 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Sign out error:', error);
     }
+  };
+
+  const navigateToWardrobe = () => {
+    router.push('/(protected)/wardrobe' as any);
   };
 
   return (
@@ -76,6 +81,17 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
       </View>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={[
+          styles.fab,
+          { backgroundColor: Colors[colorScheme ?? 'light'].primary }
+        ]}
+        onPress={navigateToWardrobe}
+      >
+        <Ionicons name="shirt" size={30} color="white" />
+      </TouchableOpacity>
     </ThemedView>
   );
 }
@@ -138,5 +154,20 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 });
