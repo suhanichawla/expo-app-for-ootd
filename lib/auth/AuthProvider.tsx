@@ -31,27 +31,33 @@ const tokenCache = {
 const getOrCreateUser = async (user: User): Promise<User> => {
   try {
     // Try to get existing user from database
-    const dbUser = await userApi.getUserByEmail(user.email);
-    
-    if (dbUser) {
+    try {
+      const dbUser = await userApi.getUserByEmail(user.email);
       // User exists, update local user object with DB info
       user.dbId = dbUser._id;
       user.emailVerified = dbUser.emailVerified;
-    } else {
-      // User doesn't exist, create new user in database
-      const newDbUser = await userApi.createUser({
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        clerkUserId: user.id
-      });
-      
-      if (newDbUser) {
-        user.dbId = newDbUser._id;
-        user.emailVerified = false;
+      return user;
+    } catch (error: any) {
+      console.log("error in whaat", error)
+      // Only catch 404 errors - user not found
+      if (error.status === 404 || (error.message && error.message.includes('User not found'))) {
+        // User doesn't exist, create new user in database
+        const newDbUser = await userApi.createUser({
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          clerkUserId: user.id
+        });
+        
+        if (newDbUser) {
+          user.dbId = newDbUser._id;
+          user.emailVerified = false;
+        }
+        return user;
       }
+      // Let any other errors propagate to the outer catch block
+      throw error;
     }
-    return user;
   } catch (error) {
     console.error('Error getting or creating user:', error);
     return user;
@@ -276,7 +282,6 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         if (createdSessionId) {
           console.log('Sign in successful:', createdSessionId);
           await setActive!({ session: createdSessionId })
-          console.log("sign in with google store", signUp)
           useAuthStore.getState().setAuthenticated(true);
           return { success: true };
         } else {
