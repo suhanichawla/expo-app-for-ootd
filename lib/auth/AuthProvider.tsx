@@ -306,7 +306,13 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     forgotPassword: async ({ email }) => {
       try {
         // Implementation will depend on Clerk's password reset flow
+        let resetPassword = await signIn
+        ?.create({
+          strategy: 'reset_password_email_code',
+          identifier: email,
+        })
         console.log('Forgot password for:', email);
+        console.log("resetPassword", resetPassword)
       } catch (error) {
         console.error('Forgot password error:', error);
         throw error;
