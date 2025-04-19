@@ -19,7 +19,8 @@ export const userApi = {
     email: string;
     firstName: string | null;
     lastName: string | null;
-    clerkUserId: string;
+    id: string;
+    imageUrl?: string;
   }): Promise<UserCreateResponse> => {
     return httpClient.post<UserCreateResponse>('/api/users/register', userData, false);
   },

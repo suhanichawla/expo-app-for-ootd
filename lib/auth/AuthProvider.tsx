@@ -34,8 +34,9 @@ const getOrCreateUser = async (user: User): Promise<User> => {
     try {
       const dbUser = await userApi.getUserByEmail(user.email);
       // User exists, update local user object with DB info
-      user.dbId = dbUser._id;
       user.emailVerified = dbUser.emailVerified;
+      user.id = dbUser._id;
+      user.imageUrl = dbUser.imageUrl || '';
       return user;
     } catch (error: any) {
       console.log("error in whaat", error)
@@ -46,12 +47,14 @@ const getOrCreateUser = async (user: User): Promise<User> => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          clerkUserId: user.id
+          imageUrl: user.imageUrl,
+          id: user.id
         });
         
         if (newDbUser) {
-          user.dbId = newDbUser._id;
-          user.emailVerified = false;
+          user.emailVerified = newDbUser.emailVerified;
+          user.id = newDbUser._id;
+          user.imageUrl = newDbUser.imageUrl || '';
         }
         return user;
       }
@@ -88,8 +91,7 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           firstName: clerkUser.firstName || '',
           lastName: clerkUser.lastName || '',
           email: clerkUser.primaryEmailAddress?.emailAddress || '',
-          imageUrl: clerkUser.imageUrl,
-          dbId: '',
+          imageUrl: clerkUser.imageUrl || '',
           emailVerified: false
         };
 
@@ -127,12 +129,11 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           const dbUser = await userApi.getUserByEmail(email);
           if (dbUser) {
             const user: User = {
-              id: dbUser.clerkUserId,
+              id: dbUser._id,
               firstName: dbUser.firstName,
               lastName: dbUser.lastName,
               email: dbUser.email,
               imageUrl: dbUser.imageUrl || '',
-              dbId: dbUser._id,
               emailVerified: dbUser.emailVerified
             };
             setUser(user);
@@ -184,12 +185,6 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           firstName,
           lastName,
         });
-        const newDbUser = await userApi.createUser({
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          clerkUserId: signUp.createdUserId || ''
-        });
   
         // Send user an email with verification code
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
@@ -239,15 +234,21 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         
         // Update the auth store
         if (verification.createdUserId && signUp.emailAddress) {
-          await userApi.verifyUser(signUp.emailAddress)
-          const user: User = {
-            id: verification.createdUserId,
+          await userApi.createUser({
+            email: signUp.emailAddress,
             firstName: signUp.firstName || '',
             lastName: signUp.lastName || '',
-            email: signUp.emailAddress || '',
-            dbId: '',
-            imageUrl: '',
-            emailVerified: false
+            id: verification.createdUserId || '',
+            imageUrl: ''
+          });
+          const dbUser =  await userApi.verifyUser(signUp.emailAddress)
+          const user: User = {
+            id: dbUser._id,
+            firstName: dbUser.firstName,
+            lastName: dbUser.lastName,
+            email: dbUser.email,
+            imageUrl: dbUser.imageUrl || '',
+            emailVerified: dbUser.emailVerified
           };
           useAuthStore.getState().setUser(user);
           useAuthStore.getState().setAuthenticated(true);

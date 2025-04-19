@@ -2,7 +2,6 @@ import { create } from 'zustand';
 
 export interface User {
   id: string; // Clerk user ID
-  dbId: string; // Database user ID
   firstName: string;
   lastName: string;
   email: string;
