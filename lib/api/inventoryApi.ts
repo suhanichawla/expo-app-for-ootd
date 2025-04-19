@@ -2,7 +2,7 @@ import { httpClient } from './httpClient';
 import { InventoryItem } from '@/types/inventory';
 
 // API endpoints
-const INVENTORY_ENDPOINT = '/inventory';
+const INVENTORY_ENDPOINT = '/api/inventory';
 
 export const inventoryApi = {
   /**
@@ -23,7 +23,8 @@ export const inventoryApi = {
    * Create a new inventory item
    */
   createInventoryItem: async (data: Omit<InventoryItem, 'id'>): Promise<InventoryItem> => {
-    return httpClient.post<InventoryItem>(INVENTORY_ENDPOINT, data);
+    console.log("inventiyr")
+    return httpClient.post<InventoryItem>(INVENTORY_ENDPOINT, data, true);
   },
 
   /**

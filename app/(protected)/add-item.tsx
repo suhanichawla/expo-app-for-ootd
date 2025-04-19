@@ -109,7 +109,7 @@ export default function AddItemScreen() {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    //if (!validateForm()) return;
     
     setIsSaving(true);
     

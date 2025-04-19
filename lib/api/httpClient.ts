@@ -1,8 +1,12 @@
 import * as SecureStore from 'expo-secure-store';
+import { clerk } from '@clerk/clerk-expo/dist/provider/singleton';
+
 
 // Token management
 const getAuthToken = async (): Promise<string | null> => {
   try {
+    const token = await clerk.session?.getToken();
+    console.log("getToken", token)
     return await SecureStore.getItemAsync('clerk-auth-token');
   } catch (error) {
     console.error('Error retrieving auth token:', error);
@@ -45,7 +49,9 @@ export const httpClient = {
     };
 
     if (requiresAuth) {
+        console.log("requiresAuth")
       const token = await getAuthToken();
+      console.log("token", token)
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }

@@ -55,25 +55,25 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     
     try {
       // If we have a local image, we need to upload it first
-      if (localImageUri) {
-        // Create FormData for image upload
-        const formData = new FormData();
-        // @ts-ignore - React Native's FormData is not fully typed
-        formData.append('image', {
-          uri: localImageUri,
-          name: 'image.jpg',
-          type: 'image/jpeg'
-        });
+      // if (localImageUri) {
+      //   // Create FormData for image upload
+      //   const formData = new FormData();
+      //   // @ts-ignore - React Native's FormData is not fully typed
+      //   formData.append('image', {
+      //     uri: localImageUri,
+      //     name: 'image.jpg',
+      //     type: 'image/jpeg'
+      //   });
         
-        // Upload the image
-        const uploadResult = await inventoryApi.uploadImage(formData);
+      //   // Upload the image
+      //   const uploadResult = await inventoryApi.uploadImage(formData);
         
-        // Update item with the image URL
-        item = {
-          ...item,
-          imageUrls: [uploadResult.imageUrl]
-        };
-      }
+      //   // Update item with the image URL
+      //   item = {
+      //     ...item,
+      //     imageUrls: [uploadResult.imageUrl]
+      //   };
+      // }
       
       // Create the item on the backend
       const newItem = await inventoryApi.createInventoryItem(item);
