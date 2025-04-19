@@ -1,5 +1,6 @@
 import { httpClient } from './httpClient';
 import { InventoryItem } from '@/types/inventory';
+import { getClerkInstance } from '@clerk/clerk-expo/dist/provider/singleton';
 
 // API endpoints
 const INVENTORY_ENDPOINT = '/api/inventory';
@@ -22,9 +23,52 @@ export const inventoryApi = {
   /**
    * Create a new inventory item
    */
-  createInventoryItem: async (data: Omit<InventoryItem, 'id'>): Promise<InventoryItem> => {
-    console.log("inventiyr")
-    return httpClient.post<InventoryItem>(INVENTORY_ENDPOINT, data, true);
+  createInventoryItem: async (data: Partial<Omit<InventoryItem, 'id'>>, imageUri: string): Promise<InventoryItem> => {
+    try {
+      // Create form data for multipart request
+      const formData = new FormData();
+      
+      // Add the image file
+      const fileNameParts = imageUri.split('/');
+      const fileName = fileNameParts[fileNameParts.length - 1];
+      
+      // @ts-ignore - FormData append type issues in React Native
+      formData.append('image', {
+        uri: imageUri,
+        name: fileName,
+        type: 'image/jpeg'
+      });
+      
+      // Add other data fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+      
+      // Get auth token
+      const token = await getClerkInstance().session?.getToken();
+      
+      // Send multipart request
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/inventory/upload-inventory-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type here - it will be set automatically with boundary
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Error uploading inventory item:', error);
+      throw error;
+    }
   },
 
   /**

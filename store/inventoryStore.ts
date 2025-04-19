@@ -76,7 +76,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       // }
       
       // Create the item on the backend
-      const newItem = await inventoryApi.createInventoryItem(item);
+      const newItem = await inventoryApi.createInventoryItem(item, localImageUri || '');
       
       // Update local state
       set(state => ({
