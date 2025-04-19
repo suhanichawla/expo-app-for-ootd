@@ -270,6 +270,36 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         };
       }
     },
+    
+    resendVerificationCode: async () => {
+      try {
+        if (!signUp || !pendingVerification) {
+          return { 
+            success: false, 
+            error: 'No verification in progress' 
+          };
+        }
+        
+        // Resend the verification email
+        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+        
+        return { success: true };
+      } catch (err: any) {
+        console.error('Resend verification error:', JSON.stringify(err, null, 2));
+        
+        // Extract error message
+        let errorMessage = 'Failed to resend verification code. Please try again.';
+        if (err.errors && err.errors.length > 0) {
+          errorMessage = err.errors[0].message;
+        }
+        
+        return { 
+          success: false, 
+          error: errorMessage 
+        };
+      }
+    },
+    
     signInWithGoogle: async () => {
       // This will be implemented with OAuth
       try {

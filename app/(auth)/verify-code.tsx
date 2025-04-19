@@ -19,9 +19,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 export default function VerifyCodeScreen() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const { verifyCode } = useAuth();
+  const { verifyCode, resendVerificationCode } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
   const email = params.email as string;
@@ -65,8 +66,23 @@ export default function VerifyCodeScreen() {
   };
 
   const handleResendCode = async () => {
-    // In a real implementation, this would call an API to resend the code
-    Alert.alert('Resend Code', 'A new verification code has been sent to your email.');
+    try {
+      setIsResending(true);
+      setError('');
+      
+      const result = await resendVerificationCode();
+      
+      if (result.success) {
+        Alert.alert('Success', `A new verification code has been sent to ${email}.`);
+      } else {
+        setError(result.error || 'Failed to resend code. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to resend verification code. Please try again.');
+      console.error('Resend code error:', err);
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -116,7 +132,7 @@ export default function VerifyCodeScreen() {
               { backgroundColor: Colors[colorScheme ?? 'light'].primary },
             ]}
             onPress={handleVerify}
-            disabled={isLoading || success}
+            disabled={isLoading || isResending || success}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
@@ -128,15 +144,19 @@ export default function VerifyCodeScreen() {
           <TouchableOpacity
             style={styles.resendContainer}
             onPress={handleResendCode}
-            disabled={isLoading || success}
+            disabled={isLoading || isResending || success}
           >
-            <ThemedText type="primary">Resend Code</ThemedText>
+            {isResending ? (
+              <ActivityIndicator color={Colors[colorScheme ?? 'light'].primary} />
+            ) : (
+              <ThemedText type="primary">Resend Code</ThemedText>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.backContainer}
             onPress={() => router.back()}
-            disabled={isLoading || success}
+            disabled={isLoading || isResending || success}
           >
             <ThemedText>Back to Sign Up</ThemedText>
           </TouchableOpacity>

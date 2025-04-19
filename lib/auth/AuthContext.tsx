@@ -10,6 +10,7 @@ export interface AuthContextType {
     lastName: string;
   }) => Promise<{ success: boolean; error?: string }>;
   verifyCode: (params: { code: string }) => Promise<{ success: boolean; error?: string }>;
+  resendVerificationCode: () => Promise<{ success: boolean; error?: string }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   forgotPassword: (params: { email: string }) => Promise<void>;
