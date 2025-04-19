@@ -6,11 +6,14 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isLoaded } = useAuth();
   const colorScheme = useColorScheme();
 
-  // If still loading, show a loading indicator
-  if (isLoading) {
+  // Debug output to see what's happening
+  console.log("Auth State:", { isAuthenticated, isLoading, isLoaded });
+
+  // Wait for Clerk to fully load before making any auth decisions
+  if (isLoading || !isLoaded) {
     return (
       <View style={styles.container}>
         <ActivityIndicator 

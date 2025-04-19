@@ -5,6 +5,7 @@ import { AuthContext, AuthContextType } from './AuthContext';
 import { useAuthStore, User } from '@/store/authStore';
 import { useSSO } from '@clerk/clerk-expo'
 import * as AuthSession from 'expo-auth-session'
+import { userApi } from '../api/userApi';
 
 
 
@@ -26,6 +27,36 @@ const tokenCache = {
   },
 };
 
+// Function to get or create a user in the database
+const getOrCreateUser = async (user: User): Promise<User> => {
+  try {
+    // Try to get existing user from database
+    const dbUser = await userApi.getUserByEmail(user.email);
+    
+    if (dbUser) {
+      // User exists, update local user object with DB info
+      user.dbId = dbUser._id;
+      user.emailVerified = dbUser.emailVerified;
+    } else {
+      // User doesn't exist, create new user in database
+      const newDbUser = await userApi.createUser({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        clerkUserId: user.id
+      });
+      
+      if (newDbUser) {
+        user.dbId = newDbUser._id;
+        user.emailVerified = false;
+      }
+    }
+    return user;
+  } catch (error) {
+    console.error('Error getting or creating user:', error);
+    return user;
+  }
+};
 
 // ClerkAuthProvider is the specific implementation using Clerk
 const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -36,27 +67,39 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { signIn } = useSignIn();
   const [pendingVerification, setPendingVerification] = useState(false);
   
-  const { setUser, setAuthenticated, setLoading } = useAuthStore();
+  // Subscribe to the auth store state
+  const { setUser, setAuthenticated, setLoading, isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     setLoading(!isLoaded);
     
-    if (isLoaded && isSignedIn && clerkUser) {
-      // Map Clerk user to our User type
-      const user: User = {
-        id: clerkUser.id,
-        firstName: clerkUser.firstName || '',
-        lastName: clerkUser.lastName || '',
-        email: clerkUser.primaryEmailAddress?.emailAddress || '',
-        imageUrl: clerkUser.imageUrl,
-      };
-      
-      setUser(user);
-      setAuthenticated(true);
-    } else if (isLoaded) {
-      setUser(null);
-      setAuthenticated(false);
-    }
+    const initUser = async () => {
+      if (isLoaded && isSignedIn && clerkUser) {
+        console.log("successful sign in fires use effect")
+        // Map Clerk user to our User type
+        const user: User = {
+          id: clerkUser.id,
+          firstName: clerkUser.firstName || '',
+          lastName: clerkUser.lastName || '',
+          email: clerkUser.primaryEmailAddress?.emailAddress || '',
+          imageUrl: clerkUser.imageUrl,
+          dbId: '',
+          emailVerified: false
+        };
+
+        // Get or create user in database
+        const updatedUser = await getOrCreateUser(user);
+        console.log("updatedUser", updatedUser)
+        
+        setUser(updatedUser);
+        setAuthenticated(true);
+      } else if (isLoaded) {
+        setUser(null);
+        setAuthenticated(false);
+      }
+    };
+    
+    initUser();
   }, [isLoaded, isSignedIn, clerkUser, setUser, setAuthenticated, setLoading]);
 
   // Create the auth context value with Clerk implementation
@@ -74,9 +117,29 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         // If sign-in process is complete, set the created session as active
         // and redirect the user
         if (signInAttempt.status === 'complete') {
-          return { 
-            success: true
+          const dbUser = await userApi.getUserByEmail(email);
+          if (dbUser) {
+            const user: User = {
+              id: dbUser.clerkUserId,
+              firstName: dbUser.firstName,
+              lastName: dbUser.lastName,
+              email: dbUser.email,
+              imageUrl: dbUser.imageUrl || '',
+              dbId: dbUser._id,
+              emailVerified: dbUser.emailVerified
+            };
+            setUser(user);
+            setAuthenticated(true);
+            return { 
+              success: true
+            }
+          }else{
+            return {
+              success: false,
+              error: 'User not found. Please sign up.'
+            }
           }
+          
         } else {
           // If the status isn't complete, check why. User might need to
           // complete further steps.
@@ -169,6 +232,9 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             firstName: signUp.firstName || '',
             lastName: signUp.lastName || '',
             email: signUp.emailAddress || '',
+            dbId: '',
+            imageUrl: '',
+            emailVerified: false
           };
           
           useAuthStore.getState().setAuthenticated(true);
@@ -235,7 +301,7 @@ const ClerkAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     },
     isLoaded,
     isSignedIn: isSignedIn || false,
-    user: useAuthStore.getState().user,
+    user: user, // Use the subscribed value from the store
   };
 
   return (
